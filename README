@@ -1,0 +1,215 @@
+/*
+ * Comp 15 Proj 4: Gerp
+ * 
+ * README
+ * Name: Laura Garavito & Luis Federico Suarez Suraez
+ * Date: April 16 2023
+ * 
+ */
+
+PROGRAM PURPOSE:
+---------------
+The purpose of phase one is to make a program that given a directory and an
+output file lets a user search for all the instances of a word. The user can
+chose to search for the word case sensitive or insensitive and if they want
+the information to go to a different output file they can create it and keep
+running the program after!
+
+ACKNOWLEDGEMENTS:
+----------------
+Professor Milod slides and lectur for all the content needed to finish this
+project. The TA's especially my lab TA's for going over material needed in
+this project so thoroughly and clearly! Office hour TA's! Google for std off
+pretty much all the data types we used. 
+most of all: THE THREE DAY EXTENSION
+
+FILES:
+-----
+README: Overview of files submitted for the homework, and explanation on
+topics covered in this homework.
+
+Makefile: It compiles and runs all the files provided.
+
+gerp.cpp: Implementation of Gerp program, running the query and all functions.
+It indexes all the words in all the files of given directory and runs the 
+query
+
+gerp.h: Class definition of gerp, uses HashTable and Node classes to store
+the files to later find words in and FSTree to store and organize the directory
+and its files.
+
+HashTable.cpp: Implementation of HashTable, used to store all words in files.
+gerp.cpp uses a hashtable to store words into a vector using the words as the
+index through a hash function, this is all implemented and organized in this
+file.
+
+HashTable.h: Class definition of HashTable, uses Node.h class. Makes a vector
+of Nodes. 
+
+Node.cpp: Implementation of Node class, used for chaining in HashTable. Every
+element of the HashTable is represented with a Node and collisions are dealt
+with a vector of these nodes at each "bucket".
+
+Node.h: Class definition of Node, stores all information of each word has a
+string and a set private variables. Because they want to be set and not
+at all modified by a user.
+
+DirNode.h: Class definition of an object that represents each directory, given
+to us.
+
+FSTree.h: Class definition of an object dedicated to store and traverse a tree
+of files. Given to us
+
+smallGin.txt:
+    Things that are in the autograder that were tested in small gutenberg
+    Basic things to see if our program is running smoothly. Things that should
+    run correcly.
+
+tinyin.txt:
+    Also things in the autograder but that were tested for tinyData. Here it is
+    easier to know what might not be in it and see if the message is the same.
+
+trickySmallin.txt:
+    some possilbe edge cases for small gutenberg words. Most non alpha numeric
+    characters and weird combinations of words and non alpha numeric characters
+
+HOW TO COMPILE/LINK/RUN:
+-----------------------
+    - Compile using
+              make 
+     - run executable with
+              ./gerp DirectoryToIndex OutputFile
+
+DATA STRUCTURES & ALGORITHMS:
+----------------------------
+VECTORS:
+    A vector is a dynamic list that can grow and shrink in size. Items can be
+    added and if there is no space for them to be added in the list the c++
+    vector implementation will allocate a bigger array, copy all the original
+    elements into the new one, and add in the new element. 
+    Very useful because the finding time for an element in a vector if the
+    index is known is O(1).  
+
+HASH FUNCTION:
+    A hash function is used to assign indexes to values of types other than 
+    integers (strings in our case). They can be used to map elements 
+    into a Hash Table. Since we used a vector to store the elements, this is 
+    especially useful because the finding time with the hash function is O(1).
+    
+SET:
+    Sets are containers of a data type that cannot be repeated. They are useful
+    to prevent duplicates and also allow iteration to access the elements. We 
+    decided to use Sets to store the data of each word so same word in same
+    line and file number are not repeated.
+
+PAIR: 
+    A pair is an object that has two components. Its like a struct with two 
+    members in the struct. They can be declared as any type. They are
+    very useful to us because we put them into a set, and a struct can't be
+    simply put into a set. Pairs works perfectly in a set! 
+
+STRUCT:
+    Structs are a way to put multiple variables that are related in one place.
+    Each variable can have a different type and they are called members of the 
+    struct. Instead of making the [0][0] element of our 2d aray the file path,
+    we made it a struct with the filepath and stared line numbers at 0.
+    We thought it was better to separate the file lines and the filepath.
+
+CLASSES:
+    A class is like a struct that also has functions unique to that struct.
+    Variables and functions can be private in a class meaning if somebody
+    includes the class, they wouldnt be able to access those functions or 
+    variables. This makes classes easier to use letting users only access
+    what they crucially need, not functions that help with the implementation
+    of the goal of the class. It usually works as a way to create objects like
+    in our case, a Node, a HashTable, and Gerp. 
+    
+ARCHITECTURAL OVERVIEW:
+----------------------
+FSTREE: 
+Creates a tree with directories and files where the files or emtpy directories
+are leafs. This is implemented for us but it works as an n-ary tree. More
+difficult than traversing a binary tree.
+
+ALL_FILES:
+This is a dynamic 2d array made of vectors in a vector. It is a vector full of
+File structs that have the filepath as a string and a vector with all the lines
+in that file. They are stored in the Gerp constructor before the program asks
+for a query
+
+HASHTABLE:
+Our HashTable is Vector on which buckets are Vector of Nodes 
+We handle collisions through chaining, simply adding a new Node in the vector
+of each Bucket 
+As shown below, each Node stores all instances of each word
+
+NODES:
+Represents the instances of each Word, storing the words and info in a set
+Word is the word in lower case that identifies the node and goes through
+hash function
+Set words stores the following info "word#fileIndex@lineNumber"
+       Used to access specific File in vector of Gerp class
+       Used to access specific line in vector lines inside File struct
+
+TESTING:
+-------
+We tested putting the CS11 dummymidterm into the project 4 file on vscode
+and then sync to halligan. We also added some files and directories and
+empty directories into the dummymidterm folder and made sure it printed
+correctly. 
+For the string we tested with a main that is commented out in the .cpp file
+We also relied on passing the autograder tests! which we did. 
+
+To see if our program was taking a lot of time we used the 
+https://www.geeksforgeeks.org/measure-execution-time-function-cpp/
+that a TA posted on PIAZZA. Everything was running VERY quickly and we thought
+it was weird that our program was taking as long as it was and theb we 
+REALIZED.... when we were calculating the load factor -that happens EVERY 
+time a value is inserted, so at EVERY word read in a file- we were calculating
+the number of elements by TRAVERSING the WHOLE hashtable and COUNTING all of
+the nodes.... This was terrible in runtime. And we just created a variable
+that counted each time a node was inserted and it took our runtime down
+like by a hundred times!!!!
+
+PRINT FUNCTIONS
+We implemented print functions in gerp.cpp and hashtable.cpp for us to check the
+program was storing all information corretctly, check that rehashing and 
+expanding was working and to get a sense of which words to test and look for 
+in our testing files
+
+UNIT TESTING:
+Gerp
+    Unit testing was particuraly useful to test our stripNonAlphaNum on which we
+    were having errors (valgrind and autograder) so we texted a variety of 
+    strings to check for empty strings, strings with only nonalpha chars and 
+    normal words with leading and trailing chars 
+
+    It was useful to test wordsProcessing which prepares our word to be added 
+    in a hash table so it is a basic key to our retrieval of info and storing
+
+Hash Table
+    In Hash Table we tested the constructor, the insertion of words
+    and most importantly the rehashing with specific load factor and size so 
+    we could check when the rehash happens
+
+    We also tested the getSet function to make sure our retrieval works in all
+    cases of words and it correctly eliminates duplicates
+
+Node 
+    Node worked for our HashTable tests as it is the basic data type inside it,
+    we further tested it to check that the set was eliminating duplicates.
+
+**Everything not tested, could ONLY be tested with running the program. 
+Only helper functions were tested with unit testing.**
+    
+TESTING FILES / DIFF:
+    We used testing files with different input on which the autograder failed
+    and some other words/strings that we considered edge cases (see more in
+    files). Then the outputs (sorted) were compared to the_gerps outputs
+    (also sorted).
+    We also tested things going wrong and comparing them to what happens in 
+    the_gerp. Wrong directoryname or queries!
+
+TIME:
+----
+    We spent about 40 hours total doing this project
